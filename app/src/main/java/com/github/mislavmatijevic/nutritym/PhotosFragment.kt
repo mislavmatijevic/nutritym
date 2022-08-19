@@ -1,6 +1,5 @@
 package com.github.mislavmatijevic.nutritym
 
-import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
@@ -20,11 +19,12 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.github.mislavmatijevic.nutritym.databinding.FragmentPhotosBinding
 import java.io.File
 import java.io.FileOutputStream
-import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 
-
+/**
+ * This fragment displays all photos user has stored locally on the device in the app's "files/Pictures".
+ */
 class PhotosFragment : Fragment() {
 
     private lateinit var binding: FragmentPhotosBinding
@@ -50,7 +50,7 @@ class PhotosFragment : Fragment() {
                 GridLayoutManager(context, 2, GridLayoutManager.VERTICAL, false)
 
             btnTakePhoto.setOnClickListener {
-                val newFile = createImageFile()
+                val newFile = createTempImageFile()
                 savedPhotoPath = newFile.path
                 takePicture.launch(getFileUri(newFile))
             }
@@ -59,6 +59,10 @@ class PhotosFragment : Fragment() {
         }
     }
 
+    /**
+     * Loads local images into the app.
+     * Without this method, every time the activity would restart, all the images would be gone.
+     */
     private fun loadLocalImages() {
 
         storageDir.listFiles { dir, name ->
@@ -92,8 +96,11 @@ class PhotosFragment : Fragment() {
         }
     }
 
-    @Throws(IOException::class)
-    private fun createImageFile(): File {
+    /**
+     * Creates a simple temporary bmp file for storing raw image directly from the camera.
+     * BMP is created in order to immediately resize it and compress it into JPG at 50% quality.
+     */
+    private fun createTempImageFile(): File {
         return File.createTempFile(
             "temp_",
             ".bmp",
@@ -101,28 +108,32 @@ class PhotosFragment : Fragment() {
         )
     }
 
-    val takePicture =
+    /**
+     * This callback controls what happens immediately AFTER camera activity sends back a photo.
+     * What it does is call a function for resizing and rotating the taken image.
+     * It knows if the tasks fails and displays a warning toast message in such case.
+     */
+    private val takePicture =
         registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-            pictureTakenCallback(success)
+            var imageSaved = false
+
+            if (success) {
+                imageSaved = editImageBeforeCompressing()
+            }
+
+            if (!imageSaved) {
+                Toast.makeText(
+                    context,
+                    "Unfortunately, photo wasn't saved. Please, try again.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         }
 
-    private fun pictureTakenCallback(success: Boolean) {
-        var imageSaved = false
-
-        if (success) {
-            imageSaved = editImageBeforeCompressing()
-        }
-
-        if (!imageSaved) {
-            Toast.makeText(
-                context,
-                "Unfortunately, photo wasn't saved. Please, try again.",
-                Toast.LENGTH_LONG
-            ).show()
-        }
-    }
-
-    @SuppressLint("SimpleDateFormat")
+    /**
+     * Makes sure the taken photo is not falsly oriented and 5MB in size.
+     * It takes a raw BMP file and locally saves a 30-70KB JPG image correctly oriented.
+     */
     private fun editImageBeforeCompressing(): Boolean {
         var success = false
 
@@ -134,7 +145,7 @@ class PhotosFragment : Fragment() {
             val exifOriginalBmpImage = ExifInterface(savedPhotoPath!!)
             bmpImage = fixImageOrientation(bmpImage, exifOriginalBmpImage)
 
-            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
+            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
             val jpgName = "IMG_${timeStamp}.jpg"
             val file = File(storageDir, jpgName)
 
@@ -157,6 +168,10 @@ class PhotosFragment : Fragment() {
         return success
     }
 
+    /**
+     * Takes an original raw BMP file and copies Exif "DATETIME" property into a new JPG file.
+     * This is done to ensure every image taken using this app always knows exactly when it was made.
+     */
     private fun copyExifDateTimeData(
         file: File,
         exifOriginalBmpImage: ExifInterface
@@ -169,6 +184,8 @@ class PhotosFragment : Fragment() {
     }
 
     /**
+     * Fixes orientation of an image by examining an "ORIENTATION" tag in its Exif.
+     * For whatever reason, camera activity rotates an image even when the UI is in portrait mode.
      * @author Jason Robinson at https://stackoverflow.com/questions/14066038/why-does-an-image-captured-using-camera-intent-gets-rotated-on-some-devices-on-a
      */
     private fun fixImageOrientation(bitmapFile: Bitmap, ei: ExifInterface): Bitmap {
@@ -186,9 +203,10 @@ class PhotosFragment : Fragment() {
     }
 
     /**
+     * This method performs the rotation of a BMP image in specified angle.
      * @author Jason Robinson at https://stackoverflow.com/questions/14066038/why-does-an-image-captured-using-camera-intent-gets-rotated-on-some-devices-on-a
      */
-    fun rotateImage(source: Bitmap, angle: Int): Bitmap {
+    private fun rotateImage(source: Bitmap, angle: Int): Bitmap {
         val matrix = Matrix()
         matrix.postRotate(angle.toFloat())
         return Bitmap.createBitmap(
@@ -197,6 +215,9 @@ class PhotosFragment : Fragment() {
         )
     }
 
+    /**
+     * Retrieves a file Uri. Used when writing an image into an already prepared local temp file.
+     */
     private fun getFileUri(file: File): Uri =
         FileProvider.getUriForFile(
             requireContext(),

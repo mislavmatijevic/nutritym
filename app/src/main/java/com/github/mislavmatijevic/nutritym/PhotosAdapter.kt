@@ -1,12 +1,12 @@
 package com.github.mislavmatijevic.nutritym
 
-import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.github.mislavmatijevic.nutritym.databinding.PhotoListItemBinding
 import java.text.SimpleDateFormat
+import java.util.*
 
 class PhotosAdapter(private val photos: List<Photo>) : RecyclerView.Adapter<PhotosViewHolder>() {
 
@@ -23,10 +23,9 @@ class PhotosAdapter(private val photos: List<Photo>) : RecyclerView.Adapter<Phot
     override fun getItemCount(): Int = photos.size
 }
 
-@SuppressLint("SimpleDateFormat")
 class PhotosViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-    private val dateFormat = SimpleDateFormat("MM.dd.")
-    private val timeFormat = SimpleDateFormat("HH:mm:ss")
+    private val dateFormat = SimpleDateFormat("MM.dd.", Locale.US)
+    private val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.US)
 
     private var binding = PhotoListItemBinding.bind(view)
 
