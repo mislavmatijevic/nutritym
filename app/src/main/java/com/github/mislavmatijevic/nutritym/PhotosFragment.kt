@@ -7,6 +7,7 @@ import android.graphics.Matrix
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -29,16 +30,18 @@ class PhotosFragment : Fragment() {
     private lateinit var binding: FragmentPhotosBinding
     private var photos: ArrayList<Photo> = ArrayList<Photo>()
     private lateinit var storageDir: File
+    var exifDateFormat = SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.US)
 
-    var savedPhotoPath: String? = null
+    private var savedPhotoPath: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        storageDir = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
-
         binding = FragmentPhotosBinding.inflate(inflater, container, false)
+
+        storageDir = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
+        loadLocalImages()
 
         binding.apply {
 
@@ -53,6 +56,39 @@ class PhotosFragment : Fragment() {
             }
 
             return root
+        }
+    }
+
+    private fun loadLocalImages() {
+
+        storageDir.listFiles { dir, name ->
+            name.endsWith(".jpg", true)
+        }?.forEach { photo ->
+
+            var photoTakenDateTime = Date(photo.lastModified())
+            try {
+                val exifDateTime = ExifInterface(photo).getAttribute(ExifInterface.TAG_DATETIME)!!
+                photoTakenDateTime = exifDateFormat.parse(exifDateTime) ?: photoTakenDateTime
+            } catch (ex: Exception) {
+                Log.e("LocalDates", "Local dates not loaded")
+                ex.printStackTrace()
+                Toast.makeText(
+                    requireContext(),
+                    "Could not correctly load dates for locally stored files!",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+
+            photos.add(
+                Photo(
+                    photo.absolutePath,
+                    BitmapFactory.decodeFile(photo.absolutePath),
+                    "Loaded file",
+                    photoTakenDateTime
+                )
+            )
+
+            photos.reverse()
         }
     }
 
@@ -95,7 +131,8 @@ class PhotosFragment : Fragment() {
         var bmpImage = BitmapFactory.decodeFile(savedPhotoPath, options)
 
         if (bmpImage != null) {
-            bmpImage = fixImageOrientation(bmpImage, ExifInterface(savedPhotoPath!!))
+            val exifOriginalBmpImage = ExifInterface(savedPhotoPath!!)
+            bmpImage = fixImageOrientation(bmpImage, exifOriginalBmpImage)
 
             val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
             val jpgName = "IMG_${timeStamp}.jpg"
@@ -107,15 +144,28 @@ class PhotosFragment : Fragment() {
                 out.close()
             }
 
+            val exifDate = copyExifDateTimeData(file, exifOriginalBmpImage)
+
             if (file.exists()) {
                 File(savedPhotoPath!!).delete()
-                photos.add(0, Photo(file.absolutePath, bmpImage, "PhotoTestName", Date()))
+                photos.add(0, Photo(file.absolutePath, bmpImage, "PhotoTestName", exifDate))
                 binding.rvPhotos.adapter?.notifyItemInserted(0)
                 success = true
             }
         }
 
         return success
+    }
+
+    private fun copyExifDateTimeData(
+        file: File,
+        exifOriginalBmpImage: ExifInterface
+    ): Date {
+        val exifNewJpgImage = ExifInterface(file)
+        val originalTimeTaken = exifOriginalBmpImage.getAttribute(ExifInterface.TAG_DATETIME)!!
+        exifNewJpgImage.setAttribute(ExifInterface.TAG_DATETIME, originalTimeTaken)
+        exifNewJpgImage.saveAttributes()
+        return exifDateFormat.parse(originalTimeTaken)!!
     }
 
     /**
