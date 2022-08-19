@@ -33,6 +33,6 @@ class PhotosViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         binding.imageView.setImageBitmap(photo.bitmap)
         binding.tvFoodName.text = photo.name
         binding.tvDate.text = dateFormat.format(photo.dateTaken)
-        binding.tvFoodName.text = timeFormat.format(photo.dateTaken)
+        binding.tvTime.text = timeFormat.format(photo.dateTaken)
     }
 }
