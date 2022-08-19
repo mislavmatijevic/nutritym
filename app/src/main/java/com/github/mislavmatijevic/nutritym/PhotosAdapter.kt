@@ -8,12 +8,16 @@ import com.github.mislavmatijevic.nutritym.databinding.PhotoListItemBinding
 import java.text.SimpleDateFormat
 import java.util.*
 
-class PhotosAdapter(private val photos: List<Photo>) : RecyclerView.Adapter<PhotosViewHolder>() {
+class PhotosAdapter(
+    private val photos: List<Photo>,
+    private val longTapCallback: (Photo) -> Boolean
+) :
+    RecyclerView.Adapter<PhotosViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PhotosViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
         val view = layoutInflater.inflate(R.layout.photo_list_item, parent, false)
-        return PhotosViewHolder(view)
+        return PhotosViewHolder(view, longTapCallback)
     }
 
     override fun onBindViewHolder(holder: PhotosViewHolder, position: Int) {
@@ -23,7 +27,8 @@ class PhotosAdapter(private val photos: List<Photo>) : RecyclerView.Adapter<Phot
     override fun getItemCount(): Int = photos.size
 }
 
-class PhotosViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+class PhotosViewHolder(private val view: View, private val longTapCallback: (Photo) -> Boolean) :
+    RecyclerView.ViewHolder(view) {
     private val dateFormat = SimpleDateFormat("MM.dd.", Locale.US)
     private val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.US)
 
@@ -34,5 +39,6 @@ class PhotosViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         binding.tvFoodName.text = photo.name
         binding.tvDate.text = dateFormat.format(photo.dateTaken)
         binding.tvTime.text = timeFormat.format(photo.dateTaken)
+        view.setOnLongClickListener { longTapCallback(photo) }
     }
 }

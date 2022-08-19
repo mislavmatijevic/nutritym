@@ -1,6 +1,7 @@
 package com.github.mislavmatijevic.nutritym
 
 import android.graphics.Bitmap
+import java.io.Serializable
 import java.util.*
 
 data class Photo(
@@ -8,4 +9,4 @@ data class Photo(
     val bitmap: Bitmap,
     val name: String,
     val dateTaken: Date
-)
+) : Serializable

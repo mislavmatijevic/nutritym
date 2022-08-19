@@ -9,5 +9,18 @@
             android:id="@+id/photosFragment"
             android:name="com.github.mislavmatijevic.nutritym.PhotosFragment"
             android:label="fragment_photos"
-            tools:layout="@layout/fragment_photos" />
+            tools:layout="@layout/fragment_photos" >
+        <action
+                android:id="@+id/action_photosFragment_to_photoCommentFragment"
+                app:destination="@id/photoCommentFragment" />
+    </fragment>
+    <fragment
+            android:id="@+id/photoCommentFragment"
+            android:name="com.github.mislavmatijevic.nutritym.PhotoCommentFragment"
+            android:label="fragment_photo_comments"
+            tools:layout="@layout/fragment_photo_comments" >
+        <action
+                android:id="@+id/action_photoCommentFragment_to_photosFragment"
+                app:destination="@id/photosFragment" />
+    </fragment>
 </navigation>

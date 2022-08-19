@@ -15,6 +15,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.exifinterface.media.ExifInterface
 import androidx.fragment.app.Fragment
+import androidx.navigation.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.github.mislavmatijevic.nutritym.databinding.FragmentPhotosBinding
 import java.io.File
@@ -49,7 +50,13 @@ class PhotosFragment : Fragment() {
 
         binding.apply {
 
-            rvPhotos.adapter = PhotosAdapter(photos)
+            rvPhotos.adapter = PhotosAdapter(photos) { photo ->
+                val bundle = Bundle().apply {
+                    putSerializable(ARG_PHOTO, photo)
+                }
+                return@PhotosAdapter container?.findNavController()
+                    ?.navigate(R.id.action_photosFragment_to_photoCommentFragment, bundle) != null
+            }
             rvPhotos.layoutManager =
                 GridLayoutManager(context, 2, GridLayoutManager.VERTICAL, false)
 
@@ -81,35 +88,38 @@ class PhotosFragment : Fragment() {
      */
     private fun loadLocalImages() {
 
-        storageDir.listFiles { dir, name ->
-            name.endsWith(".jpg", true)
-        }?.forEach { photo ->
+        if (photos.isEmpty()) {
+            storageDir.listFiles { dir, name ->
+                name.endsWith(".jpg", true)
+            }?.forEach { photo ->
 
-            var photoTakenDateTime = Date(photo.lastModified())
-            try {
-                val exifDateTime = ExifInterface(photo).getAttribute(ExifInterface.TAG_DATETIME)!!
-                photoTakenDateTime = exifDateFormat.parse(exifDateTime) ?: photoTakenDateTime
-            } catch (ex: Exception) {
-                Log.e("LocalDates", "Local dates not loaded")
-                ex.printStackTrace()
-                Toast.makeText(
-                    requireContext(),
-                    "Could not correctly load dates for locally stored files!",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
+                var photoTakenDateTime = Date(photo.lastModified())
+                try {
+                    val exifDateTime =
+                        ExifInterface(photo).getAttribute(ExifInterface.TAG_DATETIME)!!
+                    photoTakenDateTime = exifDateFormat.parse(exifDateTime) ?: photoTakenDateTime
+                } catch (ex: Exception) {
+                    Log.e("LocalDates", "Local dates not loaded")
+                    ex.printStackTrace()
+                    Toast.makeText(
+                        requireContext(),
+                        "Could not correctly load dates for locally stored files!",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
 
-            photos.add(
-                Photo(
-                    photo.absolutePath,
-                    BitmapFactory.decodeFile(photo.absolutePath),
-                    "Loaded file",
-                    photoTakenDateTime
+                photos.add(
+                    Photo(
+                        photo.absolutePath,
+                        BitmapFactory.decodeFile(photo.absolutePath),
+                        "Loaded file",
+                        photoTakenDateTime
+                    )
                 )
-            )
 
-            photos.sortWith { photo1, photo2 ->
-                photo2.dateTaken.compareTo(photo1.dateTaken)
+                photos.sortWith { photo1, photo2 ->
+                    photo2.dateTaken.compareTo(photo1.dateTaken)
+                }
             }
         }
     }
