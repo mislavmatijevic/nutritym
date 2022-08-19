@@ -92,7 +92,9 @@ class PhotosFragment : Fragment() {
                 )
             )
 
-            photos.reverse()
+            photos.sortWith { photo1, photo2 ->
+                photo2.dateTaken.compareTo(photo1.dateTaken)
+            }
         }
     }
 
