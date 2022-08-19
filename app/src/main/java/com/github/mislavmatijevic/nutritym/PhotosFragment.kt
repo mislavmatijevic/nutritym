@@ -32,6 +32,10 @@ class PhotosFragment : Fragment() {
     private lateinit var storageDir: File
     var exifDateFormat = SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.US)
 
+    companion object {
+        const val PHOTO_PATH_TAG = "savedPhotoPath"
+    }
+
     private var savedPhotoPath: String? = null
 
     override fun onCreateView(
@@ -55,8 +59,20 @@ class PhotosFragment : Fragment() {
                 takePicture.launch(getFileUri(newFile))
             }
 
+            if (savedInstanceState != null) {
+                savedPhotoPath = savedInstanceState.getString(PHOTO_PATH_TAG)
+            }
+
             return root
         }
+    }
+
+    /**
+     * Save path variable before activity destruction.
+     */
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString(PHOTO_PATH_TAG, savedPhotoPath)
+        super.onSaveInstanceState(outState)
     }
 
     /**
@@ -117,18 +133,15 @@ class PhotosFragment : Fragment() {
      */
     private val takePicture =
         registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-            var imageSaved = false
-
             if (success) {
-                imageSaved = editImageBeforeCompressing()
-            }
-
-            if (!imageSaved) {
-                Toast.makeText(
-                    context,
-                    "Unfortunately, photo wasn't saved. Please, try again.",
-                    Toast.LENGTH_LONG
-                ).show()
+                val imageSaved = editImageBeforeCompressing()
+                if (!imageSaved) {
+                    Toast.makeText(
+                        context,
+                        "Unfortunately, photo wasn't saved. Please, try again.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
             }
         }
 
