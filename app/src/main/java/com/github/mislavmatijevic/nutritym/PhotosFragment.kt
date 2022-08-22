@@ -124,7 +124,7 @@ class PhotosFragment : Fragment() {
                     Photo(
                         photo.absolutePath,
                         BitmapFactory.decodeFile(photo.absolutePath),
-                        "Loaded file",
+                        photo.nameWithoutExtension,
                         photoTakenDateTime
                     )
                 )
