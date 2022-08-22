@@ -5,4 +5,8 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="photo_related_to_selected_item">Photo related to selected item</string>
     <string name="enter_comment">Enter comment…</string>
+    <string name="give_photo_a_new_name">Give photo a new name</string>
+    <string name="enter_photo_name">Enter photo name</string>
+    <string name="accept">Accept</string>
+    <string name="cancel">Cancel</string>
 </resources>

@@ -32,6 +32,7 @@ class PhotosFragment : Fragment() {
     private var photos: ArrayList<Photo> = ArrayList<Photo>()
     private lateinit var storageDir: File
     var exifDateFormat = SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.US)
+    private lateinit var dialog: PhotoNameDialogFragment
 
     companion object {
         const val PHOTO_PATH_TAG = "savedPhotoPath"
@@ -64,6 +65,17 @@ class PhotosFragment : Fragment() {
                 val newFile = createTempImageFile()
                 savedPhotoPath = newFile.path
                 takePicture.launch(getFileUri(newFile))
+            }
+
+            dialog = PhotoNameDialogFragment { photoName ->
+                val imageSaved = compressAndSavePhoto(photoName)
+                if (!imageSaved) {
+                    Toast.makeText(
+                        context,
+                        "Unfortunately, photo wasn't saved. Please, try again.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
             }
 
             if (savedInstanceState != null) {
@@ -144,14 +156,7 @@ class PhotosFragment : Fragment() {
     private val takePicture =
         registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
             if (success) {
-                val imageSaved = editImageBeforeCompressing()
-                if (!imageSaved) {
-                    Toast.makeText(
-                        context,
-                        "Unfortunately, photo wasn't saved. Please, try again.",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
+                dialog.show(parentFragmentManager, "NAME_GIVING")
             }
         }
 
@@ -159,7 +164,7 @@ class PhotosFragment : Fragment() {
      * Makes sure the taken photo is not falsly oriented and 5MB in size.
      * It takes a raw BMP file and locally saves a 30-70KB JPG image correctly oriented.
      */
-    private fun editImageBeforeCompressing(): Boolean {
+    private fun compressAndSavePhoto(photoName: String): Boolean {
         var success = false
 
         val options = BitmapFactory.Options()
@@ -170,8 +175,7 @@ class PhotosFragment : Fragment() {
             val exifOriginalBmpImage = ExifInterface(savedPhotoPath!!)
             bmpImage = fixImageOrientation(bmpImage, exifOriginalBmpImage)
 
-            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-            val jpgName = "IMG_${timeStamp}.jpg"
+            val jpgName = "${photoName}.jpg"
             val file = File(storageDir, jpgName)
 
             FileOutputStream(file).use { out ->
@@ -184,7 +188,7 @@ class PhotosFragment : Fragment() {
 
             if (file.exists()) {
                 File(savedPhotoPath!!).delete()
-                photos.add(0, Photo(file.absolutePath, bmpImage, "PhotoTestName", exifDate))
+                photos.add(0, Photo(file.absolutePath, bmpImage, photoName, exifDate))
                 binding.rvPhotos.adapter?.notifyItemInserted(0)
                 success = true
             }
