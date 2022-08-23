@@ -6,6 +6,7 @@ import android.graphics.Matrix
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.util.Base64
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -17,8 +18,14 @@ import androidx.exifinterface.media.ExifInterface
 import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
+import com.github.mislavmatijevic.nutritym.api.PhotoService
+import com.github.mislavmatijevic.nutritym.api.RetrofitInstance
 import com.github.mislavmatijevic.nutritym.databinding.FragmentPhotosBinding
+import com.github.mislavmatijevic.nutritym.dto.PhotoDto
 import com.github.mislavmatijevic.nutritym.model.Photo
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -34,6 +41,7 @@ class PhotosFragment : Fragment() {
     private lateinit var storageDir: File
     var exifDateFormat = SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.US)
     private lateinit var dialog: PhotoNameDialogFragment
+    private lateinit var photoService: PhotoService
 
     companion object {
         const val PHOTO_PATH_TAG = "savedPhotoPath"
@@ -46,6 +54,8 @@ class PhotosFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentPhotosBinding.inflate(inflater, container, false)
+
+        photoService = RetrofitInstance.getRetrofitInstance().create(PhotoService::class.java)
 
         storageDir = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
         loadLocalImages()
@@ -193,9 +203,20 @@ class PhotosFragment : Fragment() {
                 binding.rvPhotos.adapter?.notifyItemInserted(0)
                 success = true
             }
+
+            CoroutineScope(Dispatchers.Default).launch {
+                uploadTakenPhoto(file)
+            }
+
         }
 
         return success
+    }
+
+    private suspend fun uploadTakenPhoto(file: File) {
+        val base64File = Base64.encodeToString(file.readBytes(), Base64.NO_WRAP)
+        val photoDto = PhotoDto(file.nameWithoutExtension, base64File)
+        photoService.uploadPhoto(photoDto)
     }
 
     /**
