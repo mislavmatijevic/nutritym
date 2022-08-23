@@ -18,6 +18,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.github.mislavmatijevic.nutritym.databinding.FragmentPhotosBinding
+import com.github.mislavmatijevic.nutritym.model.Photo
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat

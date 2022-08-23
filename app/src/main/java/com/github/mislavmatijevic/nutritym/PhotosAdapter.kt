@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.github.mislavmatijevic.nutritym.databinding.PhotoListItemBinding
+import com.github.mislavmatijevic.nutritym.model.Photo
 import java.text.SimpleDateFormat
 import java.util.*
 
