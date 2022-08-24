@@ -6,8 +6,8 @@ import androidx.room.PrimaryKey
 import java.util.*
 
 @Entity(tableName = "photos")
-data class Photo(
-    @PrimaryKey val id: Int,
+data class PhotoEntity(
+    @PrimaryKey(autoGenerate = true) val id: Int,
 
     val name: String,
     @ColumnInfo(name = "bitmap_base64") val bitmapBase64: String,

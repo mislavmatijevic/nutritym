@@ -18,11 +18,11 @@ import androidx.exifinterface.media.ExifInterface
 import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
+import com.github.mislavmatijevic.nutrity.core.model.Photo
 import com.github.mislavmatijevic.nutritym.api.PhotoService
 import com.github.mislavmatijevic.nutritym.api.RetrofitInstance
 import com.github.mislavmatijevic.nutritym.databinding.FragmentPhotosBinding
 import com.github.mislavmatijevic.nutritym.dto.PhotoDto
-import com.github.mislavmatijevic.nutritym.model.Photo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

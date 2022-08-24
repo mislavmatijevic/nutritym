@@ -6,8 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.github.mislavmatijevic.nutrity.core.model.Photo
 import com.github.mislavmatijevic.nutritym.databinding.FragmentPhotoCommentsBinding
-import com.github.mislavmatijevic.nutritym.model.Photo
 
 const val ARG_PHOTO: String = "param_passed_photo"
 
