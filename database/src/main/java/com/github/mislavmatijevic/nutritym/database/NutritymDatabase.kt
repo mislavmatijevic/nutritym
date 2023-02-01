@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import com.github.mislavmatijevic.nutritym.database.dao.PhotoDao
 import com.github.mislavmatijevic.nutritym.database.entity.PhotoEntity
 
-@Database(entities = [PhotoEntity::class], version = 1, exportSchema = false)
+@Database(entities = [PhotoEntity::class], version = 2, exportSchema = false)
 abstract class NutritymDatabase : RoomDatabase() {
 
     abstract fun getPhotoDao(): PhotoDao

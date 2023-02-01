@@ -5,6 +5,7 @@ import com.github.mislavmatijevic.nutrity.core.converter.BitmapConverter
 import com.github.mislavmatijevic.nutrity.core.mapper.GenericMapper
 import com.github.mislavmatijevic.nutrity.core.model.Photo
 import com.github.mislavmatijevic.nutritym.database.entity.PhotoEntity
+import java.util.*
 
 /**
  * Maps photos (models) to photos (entities).
@@ -16,7 +17,7 @@ class PhotoMapper : GenericMapper<Photo, PhotoEntity> {
             entity.name,
             BitmapConverter.bytesToBitmap(Base64.decode(entity.bitmapBase64, Base64.NO_WRAP))!!,
             entity.name,
-            entity.dateTaken
+            Date(entity.dateTaken)
         )
     }
 
@@ -25,7 +26,7 @@ class PhotoMapper : GenericMapper<Photo, PhotoEntity> {
             0,
             dto.name,
             Base64.encodeToString(BitmapConverter.bitmapToBytes(dto.bitmap), Base64.NO_WRAP),
-            dto.dateTaken
+            dto.dateTaken.time
         )
     }
 }
